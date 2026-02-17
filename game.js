@@ -4,27 +4,27 @@ const ctx = canvas.getContext("2d");
 canvas.width = 600;  
 canvas.height = 900;
 
-// --- CARREGAMENTO DE SONS (Usando os nomes que você criou) ---
+// --- som -- 
 const soundHit = new Audio('bateuraquete.wav');
 const soundWin = new Audio('fezgol.wav'); 
 const soundLose = new Audio('tomougol.wav'); 
 
-// Função auxiliar para tocar sons sem atraso (sobreposição)
+// tocar sons sem atraso 
 function playSFX(audio) {
-    audio.currentTime = 0; // Reinicia o som se ele já estiver tocando
+    audio.currentTime = 0; // o som se ele já estiver tocando
     audio.play().catch(e => console.log("Áudio aguardando Nick...")); 
 }
 
-// --- NOVO: Sistema de Nick ---
+// --: Sistema de Nick ---
 let playerName = "";
 let inputActive = true;
 let errorMessage = "";
 
-// Variáveis para as mensagens de gol
+// mensagens de gol
 let goalMessage = "";
 let goalTimer = 0;
 
-// Função para desenhar a tela de Nick
+//  tela de Nick
 function drawNickScreen() {
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -52,7 +52,7 @@ function drawNickScreen() {
     ctx.fillText("Pressione ENTER para confirmar", canvas.width / 2, 600);
 }
 
-// Ouvinte de teclado especial para o Nick e ESC
+// teclado especial: Nick e ESC
 window.addEventListener("keydown", (e) => {
     // SISTEMA DE VOLTAR AO NICK COM ESC
     if (e.key === "Escape") {
