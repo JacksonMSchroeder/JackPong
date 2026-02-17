@@ -102,14 +102,7 @@ window.addEventListener("keydown", (e) => {
         return;
     }
 
-    // testar lvl  ç                                                                     !!!TESTAR LVL COM Ç !!!
-    if (!inputActive && e.key.toLowerCase() === "Ç") {
-        displayLevel = (displayLevel < 6) ? displayLevel + 1 : 1;
-        resetBall();
-        gameStarted = false;
-        isPaused = false;
-        return;
-    }
+   
 
     if (!inputActive) return; 
 
@@ -483,6 +476,6 @@ loop();
 
 
 
-// ideias, deixar o player escolher a cor da raquete no menu principal 
+// ideias, deixar o player escolher a cor da raquete no menu principal ?
 // portar depois de finalizado par mobile ? 
 // fazer cores diferentes para cada nivel no campo? 
