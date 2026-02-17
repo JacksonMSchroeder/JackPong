@@ -1,6 +1,8 @@
 # JackPong
 Estudo, fazer um pong e trabalhar com ideias para aprimoração 
 
+link para o jogo ~> https://jacksonmschroeder.github.io/JackPong/
+
 ✅Física da bola e escopo geral do jogo, Mudança importante "verticalidade do jogo"
 ✅Sistema de Progressão por Níveis
 ✅Sistema de poderes
