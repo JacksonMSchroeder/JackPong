@@ -85,3 +85,101 @@ para o saque sair reto ( ta dando problema de sair muito pro lado e sair gol log
     ballSpeedY = (lastScorer === "player" ? -speed : speed);
     ballSpeedX = 0; // <--- 
     // -----------------------
+
+
+
+    /////////////////// == //////////////////////////
+
+    SONS DO JOGO ( site jsfrx)
+
+    
+const soundHit = new Audio('bateuraquete.wav'); // ou .mp3, veja a extensão do arquivo
+const soundWin = new Audio('fezgol.wav'); 
+const soundLose = new Audio('tomougol.wav'); 
+
+function playSFX(audio) {
+    audio.currentTime = 0; 
+    audio.play().catch(e => console.log("Som aguardando Nick..."));
+}
+
+
+
+
+
+///////////////////==//////////////////////
+
+INVESTIGAR!!!  sempre que tento adicionar um poder como bola curva, ou efeitos de campo o jogo  CRASH ou não abre, ou freeza, estudar e entender motivo !!!
+
+// ---!!!!!!!!!! SISTEMA DE PODERES !!!!!!!!!!!---
+
+ controla o poderzinho que cai 
+let powerUp = { 
+    x: 0, 
+    y: 0, 
+    active: false, // Indica se o item está visível na tela caindo
+    size: 20, 
+    speed: 3, 
+    type: ''       // Pode ser 'wide' (raquete grande) ou 'slow' (bola lenta)
+}; 
+
+function spawnPowerUp() {
+     poder vai aparecer (10% de chance) >hit bola<
+    if (Math.random() < 0.10 && !powerUp.active) {
+        powerUp.x = Math.random() * (canvas.width - powerUp.size); // Posição X aleatória
+        powerUp.y = 0; // Começa no topo da tela
+        powerUp.active = true; // Ativa a queda
+        // Sorteia 50% de chance para cada tipo de poder
+        powerUp.type = Math.random() < 0.5 ? 'wide' : 'slow';
+    }
+}
+
+// :
+function updatePowerUpLogic() {
+    if (powerUp.active) {
+        powerUp.y += powerUp.speed; // Faz o quadradinho descer
+
+        // Verifica se o jogador "pegou" o poder com a raquete
+        if (powerUp.y + powerUp.size > canvas.height - paddleHeight &&
+            powerUp.x > playerX && powerUp.x < playerX + playerWidth) {
+            
+            powerUp.active = false; // Remove o item da tela
+
+            raquetão
+            if (powerUp.type === 'wide') {
+                powerUpActive = true; 
+                playerWidth = basePaddleWidth * 1.6; // Aumenta a raquete em 60%
+                powerUpTimer = 420; // Duração de 7 segundos (60 frames * 7)
+                triggerFlash("#00FF00"); // Pisca a tela em verde
+            } 
+             bola Lenta 
+            else if (powerUp.type === 'slow') {
+                ballSlowed = true;
+                ballSlowTimer = 360; // Duração de 6 segundos
+                let slowSpeed = getLevelSpeed(); // Aplica a velocidade reduzida
+                ballSpeedY = Math.sign(ballSpeedY) * slowSpeed;
+                ballSpeedX = Math.sign(ballSpeedX) * slowSpeed; 
+                triggerFlash("#00FFFF"); // Pisca a tela em ciano
+            }
+        }
+        
+        // poder não ser considerado se não for pego
+        if (powerUp.y > canvas.height) powerUp.active = false;
+    }
+
+    tempo raquetão
+    if (powerUpActive) {
+        powerUpTimer--;
+        if (powerUpTimer <= 0) {
+            powerUpActive = false;
+            playerWidth = basePaddleWidth; // Volta ao tamanho normal
+        }
+    }
+
+    bola Lenta
+    if (ballSlowed) {
+        ballSlowTimer--;
+        if (ballSlowTimer <= 0) {
+            ballSlowed = false; // Bola volta à velocidade normal do nível
+        }
+    }
+}

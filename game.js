@@ -4,16 +4,27 @@ const ctx = canvas.getContext("2d");
 canvas.width = 600;  
 canvas.height = 900;
 
-// ----------------- SISTEMA DE NICK!!!!!!!!! ---
+// --- CARREGAMENTO DE SONS (Usando os nomes que você criou) ---
+const soundHit = new Audio('bateuraquete.wav');
+const soundWin = new Audio('fezgol.wav'); 
+const soundLose = new Audio('tomougol.wav'); 
+
+// Função auxiliar para tocar sons sem atraso (sobreposição)
+function playSFX(audio) {
+    audio.currentTime = 0; // Reinicia o som se ele já estiver tocando
+    audio.play().catch(e => console.log("Áudio aguardando Nick...")); 
+}
+
+// --- NOVO: Sistema de Nick ---
 let playerName = "";
 let inputActive = true;
 let errorMessage = "";
 
-//  mensagens de gol
+// Variáveis para as mensagens de gol
 let goalMessage = "";
 let goalTimer = 0;
 
-// nick na tela
+// Função para desenhar a tela de Nick
 function drawNickScreen() {
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -21,17 +32,15 @@ function drawNickScreen() {
     ctx.fillStyle = "#FFF";
     ctx.textAlign = "center";
     ctx.font = "bold 30px Arial";
-    ctx.fillText("DIGITE SEU NICK", canvas.width / 2, 300);
+    ctx.fillText("PLAYER 1: DIGITE SEU NICK", canvas.width / 2, 300);
     
     ctx.font = "20px Arial";
     ctx.fillText("(O nome 'Jack' é proibido)", canvas.width / 2, 340);
 
-    //  o que o usuário está digitando
     ctx.font = "bold 50px Courier New";
     ctx.fillStyle = "#0F0";
     ctx.fillText(playerName + "_", canvas.width / 2, 450);
 
-    // msg erro
     if (errorMessage) {
         ctx.fillStyle = "#FF0000";
         ctx.font = "20px Arial";
@@ -43,9 +52,9 @@ function drawNickScreen() {
     ctx.fillText("Pressione ENTER para confirmar", canvas.width / 2, 600);
 }
 
-// teclado para o nick
+// Ouvinte de teclado especial para o Nick e ESC
 window.addEventListener("keydown", (e) => {
-    // voltar no ESC para mudar o nick
+    // SISTEMA DE VOLTAR AO NICK COM ESC
     if (e.key === "Escape") {
         inputActive = true;
         gameStarted = false;
@@ -57,23 +66,21 @@ window.addEventListener("keydown", (e) => {
         return;
     }
 
-    if (!inputActive) return; // se já passou do nick, ignora
-
+    if (!inputActive) return; 
 
     if (e.key === "Enter") {
         if (playerName.toLowerCase() === "jack") {
-            errorMessage = "Só pode haver um  'Jack'! >.<   ";
+            errorMessage = "ERRO: O sistema não aceita o nome 'Jack'!";
             playerName = "";
         } else if (playerName.length < 3) {
             errorMessage = "O nick deve ter pelo menos 3 caracteres.";
         } else {
-            inputActive = false; // libera o jogo
+            inputActive = false; 
         }
     } else if (e.key === "Backspace") {
         playerName = playerName.slice(0, -1);
         errorMessage = "";
     } else if (e.key.length === 1 && playerName.length < 12) {
-        // Aceita apenas letras e números
         if (/[a-zA-Z0-9]/.test(e.key)) {
             playerName += e.key;
             errorMessage = "";
@@ -94,8 +101,8 @@ let flashOpacity = 0;
 // --- controle do player  ---
 const keys = {};
 const playerSpeed = 10;
-let playerWidth = 110; // tamanho da raquete
-let powerUpActive = false; // para saber se o poderzinho ta ativo
+let playerWidth = 110; 
+let powerUpActive = false; 
 let powerUpTimer = 0;
 
 // --- bola ---
@@ -104,11 +111,10 @@ let ballX = 300, ballY = 450;
 let ballSpeedX = 0, ballSpeedY = 0;
 let ballTrail = [];
 const trailLength = 8;
-let ballSlowed = false; // bola lenta
-let ballSlowTimer = 0;   // tempo bola lenta
+let ballSlowed = false; 
+let ballSlowTimer = 0;   
 
 function getLevelSpeed() {
-    // para ajudar velocidade da bola
     return ballSlowed ? (5 + (displayLevel * 0.25)) * 0.4 : (5 + (displayLevel * 0.25));
 }
 
@@ -124,7 +130,7 @@ function triggerShake(intensity) { shakeIntensity = intensity; }
 function triggerFlash(color) { borderFlashColor = color; flashOpacity = 0.5; }
 
 // --- poderzinhossss ---
-let powerUp = { x: 0, y: 0, active: false, size: 20, speed: 3, type: '' }; // Type: 'wide' ou 'slow'
+let powerUp = { x: 0, y: 0, active: false, size: 20, speed: 3, type: '' }; 
 
 function spawnPowerUp() {
     // 10% de chance de spawnar um power-up ?????                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -132,7 +138,6 @@ function spawnPowerUp() {
         powerUp.x = Math.random() * (canvas.width - powerUp.size);
         powerUp.y = 0;
         powerUp.active = true;
-        // 50% para cair cada poderzinho
         powerUp.type = Math.random() < 0.5 ? 'wide' : 'slow';
     }
 }
@@ -145,13 +150,12 @@ function resetBall() {
     playerX = (canvas.width - playerWidth) / 2;
     computerX = (canvas.width - currentCompW) / 2;
 
-    // resetar os poderzinho
     playerWidth = basePaddleWidth;
     powerUpActive = false;
     powerUpTimer = 0;
     ballSlowed = false;
     ballSlowTimer = 0;
-    powerUp.active = false; // remove poderzinho caindo
+    powerUp.active = false; 
 
     let speed = getLevelSpeed();
     ballSpeedY = (lastScorer === "player" ? -speed : speed);
@@ -183,9 +187,8 @@ function update() {
 
     if (shakeIntensity > 0) shakeIntensity *= 0.9;
     if (flashOpacity > 0) flashOpacity -= 0.02;
-    if (goalTimer > 0) goalTimer--; // Diminui o tempo da mensagem de gol
+    if (goalTimer > 0) goalTimer--; 
 
-    // tempo do raquetão "(poder)"
     if (powerUpActive) {
         powerUpTimer--;
         if (powerUpTimer <= 0) {
@@ -194,7 +197,6 @@ function update() {
         }
     }
 
-    // tempo da bola lenta
     if (ballSlowed) {
         ballSlowTimer--;
         if (ballSlowTimer <= 0) {
@@ -205,26 +207,25 @@ function update() {
         }
     }
 
-    // movimentação do poderzinho caindo
     if (powerUp.active) {
         powerUp.y += powerUp.speed;
         if (powerUp.y + powerUp.size > canvas.height - paddleHeight &&
             powerUp.x > playerX && powerUp.x < playerX + playerWidth) {
             
-            powerUp.active = false; // coletar!
+            powerUp.active = false; 
 
             if (powerUp.type === 'wide') {
                 powerUpActive = true;
                 playerWidth = basePaddleWidth * 1.6;
                 powerUpTimer = 420; // 7 !!
-                triggerFlash("#00FF00"); // verde da raquete
+                triggerFlash("#00FF00"); 
             } else if (powerUp.type === 'slow') {
                 ballSlowed = true;
                 ballSlowTimer = 360; // 6 ?? ~~~!~~~~
                 let slowSpeed = getLevelSpeed();
                 ballSpeedY = Math.sign(ballSpeedY) * slowSpeed;
                 ballSpeedX = Math.sign(ballSpeedX) * slowSpeed; 
-                triggerFlash("#00FFFF"); // flash para Bola Lenta
+                triggerFlash("#00FFFF"); 
             }
         }
         if (powerUp.y > canvas.height) powerUp.active = false;
@@ -239,7 +240,6 @@ function update() {
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 
-    // --- ia humanizada --
     let currentCompW = getEnemyWidth();
     if (ballSpeedY < 0 && ballY < canvas.height * 0.7) {
         let computerAgility = (ballSlowed ? 1.0 : 1.8) + (displayLevel * 0.45);
@@ -254,6 +254,7 @@ function update() {
     if (ballX - ballRadius < 0 || ballX + ballRadius > canvas.width) {
         ballSpeedX *= -1;
         triggerShake(3);
+        playSFX(soundHit); // SOM DE REBATER NA PAREDE
     }
 
     let speed = getLevelSpeed();
@@ -267,11 +268,12 @@ function update() {
             ballSpeedY = -speed;
             ballY = canvas.height - paddleHeight - ballRadius;
             triggerShake(8);
+            playSFX(soundHit); // <--- SOM DE BATER NA RAQUETE PLAYER
             spawnPowerUp();
         }
     }
 
-    // colisão inimigo
+    // colisão inimigo (Jack)
     if (ballSpeedY < 0 && ballY - ballRadius <= paddleHeight) {
         if (ballX > computerX - 5 && ballX < computerX + currentCompW + 5) {
             let impactPoint = (ballX - (computerX + currentCompW / 2)) / (currentCompW / 2);
@@ -279,6 +281,7 @@ function update() {
             ballSpeedY = speed;
             ballY = paddleHeight + ballRadius;
             triggerShake(8);
+            playSFX(soundHit); // <--- SOM DE BATER NA RAQUETE JACK
         }
     }
 
@@ -287,12 +290,14 @@ function update() {
             playerScore++; lastScorer = "player";
             goalMessage = `${playerName} FEZ GOL!`;
             triggerFlash(currentColor);
+            playSFX(soundWin); // <--- SOM DE FAZER GOL (fezgol.wav)
         } else {
             computerScore++; lastScorer = "computer";
             goalMessage = "JACK FEZ O GOL!";
             triggerFlash("#FF0000");
+            playSFX(soundLose); // <--- SOM DE TOMAR GOL (tomougol.wav)
         }
-        goalTimer = 60; // Mostra a mensagem por 1 segundo (60 frames)
+        goalTimer = 60; 
         if (playerScore >= winningScore || computerScore >= winningScore) gameOver = true;
         else { gameStarted = false; resetBall(); }
     }
@@ -316,7 +321,6 @@ function draw() {
         ctx.translate((Math.random()-0.5)*shakeIntensity, (Math.random()-0.5)*shakeIntensity);
     }
 
-    // DESENHO DA MENSAGEM DE GOL
     if (goalTimer > 0 && !gameOver) {
         ctx.font = "bold 40px Arial";
         ctx.fillStyle = (lastScorer === "player") ? "#0F0" : "#F00";
