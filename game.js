@@ -5,9 +5,9 @@ canvas.width = 600;
 canvas.height = 900;
 
 // --- som -- 
-const soundHit = new Audio('bateuraquete.wav');
-const soundWin = new Audio('fezgol.wav'); 
-const soundLose = new Audio('tomougol.wav'); 
+const soundHit = new Audio('assets/audio/bateuraquete.wav');
+const soundWin = new Audio('assets/audio/fezgol.wav'); 
+const soundLose = new Audio('assets/audio/tomougol.wav');
 
 // tocar sons sem atraso 
 function playSFX(audio) {
@@ -32,7 +32,7 @@ function drawNickScreen() {
     ctx.fillStyle = "#FFF";
     ctx.textAlign = "center";
     ctx.font = "bold 30px Arial";
-    ctx.fillText("PLAYER 1: DIGITE SEU NICK", canvas.width / 2, 300);
+    ctx.fillText("DIGITE SEU NICK e Press Enter", canvas.width / 2, 300);
     
     ctx.font = "20px Arial";
     ctx.fillText("(O nome 'Jack' é proibido)", canvas.width / 2, 340);
@@ -129,11 +129,10 @@ function getEnemyWidth() { return basePaddleWidth + ((displayLevel - 1) * 0.08 *
 function triggerShake(intensity) { shakeIntensity = intensity; }
 function triggerFlash(color) { borderFlashColor = color; flashOpacity = 0.5; }
 
-// --- poderzinhossss ---
+// --- poderzinhossss (teste) ---
 let powerUp = { x: 0, y: 0, active: false, size: 20, speed: 3, type: '' }; 
 
 function spawnPowerUp() {
-    // 10% de chance de spawnar um power-up ?????                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (Math.random() < 0.10 && !powerUp.active) {
         powerUp.x = Math.random() * (canvas.width - powerUp.size);
         powerUp.y = 0;
@@ -217,11 +216,11 @@ function update() {
             if (powerUp.type === 'wide') {
                 powerUpActive = true;
                 playerWidth = basePaddleWidth * 1.6;
-                powerUpTimer = 420; // 7 !!
+                powerUpTimer = 420; 
                 triggerFlash("#00FF00"); 
             } else if (powerUp.type === 'slow') {
                 ballSlowed = true;
-                ballSlowTimer = 360; // 6 ?? ~~~!~~~~
+                ballSlowTimer = 360; 
                 let slowSpeed = getLevelSpeed();
                 ballSpeedY = Math.sign(ballSpeedY) * slowSpeed;
                 ballSpeedX = Math.sign(ballSpeedX) * slowSpeed; 
@@ -254,13 +253,12 @@ function update() {
     if (ballX - ballRadius < 0 || ballX + ballRadius > canvas.width) {
         ballSpeedX *= -1;
         triggerShake(3);
-        playSFX(soundHit); // SOM DE REBATER NA PAREDE
+        playSFX(soundHit); 
     }
 
     let speed = getLevelSpeed();
     let currentColor = `hsl(${200 - (displayLevel * 30)}, 80%, 50%)`;
 
-    // colisão do jogador
     if (ballSpeedY > 0 && ballY + ballRadius >= canvas.height - paddleHeight) {
         if (ballX > playerX - 5 && ballX < playerX + playerWidth + 5) {
             let impactPoint = (ballX - (playerX + playerWidth / 2)) / (playerWidth / 2);
@@ -268,12 +266,11 @@ function update() {
             ballSpeedY = -speed;
             ballY = canvas.height - paddleHeight - ballRadius;
             triggerShake(8);
-            playSFX(soundHit); // <--- SOM DE BATER NA RAQUETE PLAYER
+            playSFX(soundHit); 
             spawnPowerUp();
         }
     }
 
-    // colisão inimigo (Jack)
     if (ballSpeedY < 0 && ballY - ballRadius <= paddleHeight) {
         if (ballX > computerX - 5 && ballX < computerX + currentCompW + 5) {
             let impactPoint = (ballX - (computerX + currentCompW / 2)) / (currentCompW / 2);
@@ -281,25 +278,40 @@ function update() {
             ballSpeedY = speed;
             ballY = paddleHeight + ballRadius;
             triggerShake(8);
-            playSFX(soundHit); // <--- SOM DE BATER NA RAQUETE JACK
+            playSFX(soundHit); 
         }
     }
 
     if (ballY < 0 || ballY > canvas.height) {
         if (ballY < 0) {
-            playerScore++; lastScorer = "player";
+            playerScore++; 
+            lastScorer = "player";
             goalMessage = `${playerName} FEZ GOL!`;
             triggerFlash(currentColor);
-            playSFX(soundWin); // <--- SOM DE FAZER GOL (fezgol.wav)
+            playSFX(soundWin);
+
+            // CASO O JOGADOR TENHA FEITO 6 GOL NO ULTIMO LVL ~~~~~~~~~~~~~~!!!~~~~~~~~~~
+            if (playerScore >= winningScore && displayLevel === 6) {
+                gameOver = true;
+            }
+
         } else {
-            computerScore++; lastScorer = "computer";
+            computerScore++; 
+            lastScorer = "computer";
             goalMessage = "JACK FEZ O GOL!";
             triggerFlash("#FF0000");
-            playSFX(soundLose); // <--- SOM DE TOMAR GOL (tomougol.wav)
+            playSFX(soundLose);
         }
+
         goalTimer = 60; 
-        if (playerScore >= winningScore || computerScore >= winningScore) gameOver = true;
-        else { gameStarted = false; resetBall(); }
+
+        //alguém venceu ! ?
+        if (playerScore >= winningScore || computerScore >= winningScore) {
+            gameOver = true;
+        } else {
+            gameStarted = false; 
+            resetBall(); 
+        }
     }
 }
 
@@ -374,13 +386,52 @@ function draw() {
         ctx.fillText("ESC para mudar Nick", canvas.width/2, canvas.height - 20);
     }
 
+    //  "if (gameOver) "" ATT PARA CRÉDITO SE PASSAR OS 6 niveis
     if (gameOver) {
-        ctx.fillStyle = "rgba(0,0,0,0.9)";
+        ctx.fillStyle = "rgba(0,0,0,0.95)"; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = (playerScore >= winningScore) ? "#00FF00" : "#FF0000";
-        ctx.font = "bold 70px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(playerScore >= winningScore ? "VITÓRIA!" : "DERROTA!", canvas.width/2, canvas.height/2);
+        
+        const venceuPartida = playerScore >= winningScore;
+
+        if (venceuPartida && displayLevel === 6) {
+            ctx.textAlign = "center";
+            
+            ctx.fillStyle = "#FFD700"; 
+            ctx.font = "bold 60px Arial";
+            ctx.fillText("Venceu o Jack!", canvas.width / 2, canvas.height / 2 - 50);
+
+            ctx.fillStyle = "#FFF";
+            ctx.font = "25px Arial";
+            ctx.fillText(`Parabéns, ${playerName}!`, canvas.width / 2, canvas.height / 2 + 10);
+            ctx.fillText("Você derrotou o Jack!", canvas.width / 2, canvas.height / 2 + 45);
+            
+            ctx.font = "bold 20px Courier New";
+            ctx.fillStyle = "rgb(240, 244, 240)"; 
+            ctx.fillText("--- CRÉDITOS ---", canvas.width / 2, canvas.height / 2 + 110);
+
+            ctx.font = "18px Courier New";
+            ctx.fillStyle = "#FFF"; 
+            ctx.fillText("Criação e Lógica: Jackson Schroeder", canvas.width / 2, canvas.height / 2 + 140);
+            ctx.fillText("Design Visual: Jackson Schroeder", canvas.width / 2, canvas.height / 2 + 165);
+            ctx.fillText("Trilha Sonora: Jsfxr (https://sfxr.me)", canvas.width / 2, canvas.height / 2 + 190);
+
+            ctx.fillStyle = "#1acb14"; 
+            ctx.fillText("Obrigado por jogar!", canvas.width / 2, canvas.height / 2 + 230);
+            
+            ctx.font = "14px Arial";
+            ctx.fillStyle = "#888";
+            ctx.fillText("PRESSIONE ESPAÇO PARA RECOMEÇAR A JORNADA", canvas.width / 2, canvas.height - 50);
+
+        } else {
+            ctx.fillStyle = venceuPartida ? "#00FF00" : "#FF0000";
+            ctx.font = "bold 70px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(venceuPartida ? "VITÓRIA!" : "DERROTA!", canvas.width/2, canvas.height/2);
+            
+            ctx.fillStyle = "#FFF";
+            ctx.font = "20px Arial";
+            ctx.fillText(venceuPartida ? "Próximo nível vindo aí..." : "Não desista!", canvas.width/2, canvas.height/2 + 60);
+        }
     }
 }
 

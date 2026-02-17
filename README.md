@@ -1,6 +1,19 @@
 # JackPong
 Estudo, fazer um pong e trabalhar com ideias para aprimoração 
 
+✅Física da bola e escopo geral do jogo, Mudança importante "verticalidade do jogo"
+✅Sistema de Progressão por Níveis
+✅Sistema de poderes
+✅Inteligência Artificial (Jack) Fiz a reação da "IA" ir em busca da bola só quando ela passa do meio campo para abrir espaço para erro e se tornar um desafio justo. (Ideia inicial de descartada de um multiplicador de velocidade, acabei extendendo a barra)
+✅Sistema de Pontuação 
+✅Efeitos Visuais (Bordas piscam, bola com um rastro)
+✅Sons, efeitos 
+✅Créditos
+✅Criar uma pasta para o audio para não ficar solto 
+
+!!!!!!!!!!!! tem que melhorar esse COD, ta muito feio, fica dificil de fazer manutenção"!!!!!!!!!!!!
+
+
 
 Meu segundo game, o primeiro foi chamado de ghostcat, fiz para tcc de um curso de programações de jogos da WEB, um jogo simples de plataforma.
 
@@ -10,6 +23,7 @@ as maiores dificuldades que enfrentei foi com física da bola e IA do inimigo, a
 fiz um trabalho com cores, com tamanho do inimigo, e fui colocando e discartando ideias ao longo do projeto, como por exemplo, colocar um multiplicador de vel no inimigo, no fim acho que o desafio ficou melhor aumentando o tamanho da raquete do inimigo 
 
 
+https://jacksonmschroeder.github.io/JackPong/   Prototipo 
 
 
 ///////////////////=/////////////////////////
