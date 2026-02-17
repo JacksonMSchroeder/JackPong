@@ -15,7 +15,7 @@ function playSFX(audio) {
     audio.play().catch(e => console.log("Áudio aguardando Nick...")); 
 }
 
-// --: Sistema de Nick ---
+// --: sistema de nick ---
 let playerName = "";
 let inputActive = true;
 let errorMessage = "";
@@ -24,10 +24,29 @@ let errorMessage = "";
 let goalMessage = "";
 let goalTimer = 0;
 
-//  tela de Nick
+// --- sistema de pausa ---                                   //att pause com continua + pause com volta pro jogo ou menu!
+let isPaused = false;
+
+// --- paticulas ---                                       //att cod copiado de um tuturial no yt 
+let particles = [];
+function createParticles(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+        particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            life: 1.0,
+            color: color
+        });
+    }
+}
+
+//  NICK                                                             //"login"
 function drawNickScreen() {
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    drawGrid();
 
     ctx.fillStyle = "#FFF";
     ctx.textAlign = "center";
@@ -35,11 +54,12 @@ function drawNickScreen() {
     ctx.fillText("DIGITE SEU NICK e Press Enter", canvas.width / 2, 300);
     
     ctx.font = "20px Arial";
-    ctx.fillText("(O nome 'Jack' é proibido)", canvas.width / 2, 340);
+    ctx.fillText("(Há 6 Níveis)", canvas.width / 2, 340);
 
     ctx.font = "bold 50px Courier New";
     ctx.fillStyle = "#0F0";
-    ctx.fillText(playerName + "_", canvas.width / 2, 450);
+    let cursor = (Math.floor(Date.now() / 500) % 2 === 0) ? "_" : " ";
+    ctx.fillText(playerName + cursor, canvas.width / 2, 450);
 
     if (errorMessage) {
         ctx.fillStyle = "#FF0000";
@@ -52,17 +72,42 @@ function drawNickScreen() {
     ctx.fillText("Pressione ENTER para confirmar", canvas.width / 2, 600);
 }
 
-// teclado especial: Nick e ESC
+
 window.addEventListener("keydown", (e) => {
-    // SISTEMA DE VOLTAR AO NICK COM ESC
+    
+    // --- pause e quit teste                                             TESTE PAUSE + QUIT 
     if (e.key === "Escape") {
-        inputActive = true;
+        if (!inputActive && !gameOver) {
+            if (!isPaused) {
+                // pause 
+                isPaused = true;
+            } else {
+                // pausado o game volta para o nick
+                isPaused = false;
+                inputActive = true;
+                gameStarted = false;
+                gameOver = false;
+                playerScore = 0;
+                computerScore = 0;
+                displayLevel = 1;
+                playerName = "";
+            }
+            return;
+        }
+    }
+
+    // --- continuar com enter ---
+    if (isPaused && e.key === "Enter") {
+        isPaused = false;
+        return;
+    }
+
+    // testar lvl  ç                                                                     !!!TESTAR LVL COM Ç !!!
+    if (!inputActive && e.key.toLowerCase() === "Ç") {
+        displayLevel = (displayLevel < 6) ? displayLevel + 1 : 1;
+        resetBall();
         gameStarted = false;
-        gameOver = false;
-        playerScore = 0;
-        computerScore = 0;
-        displayLevel = 1;
-        playerName = "";
+        isPaused = false;
         return;
     }
 
@@ -70,10 +115,10 @@ window.addEventListener("keydown", (e) => {
 
     if (e.key === "Enter") {
         if (playerName.toLowerCase() === "jack") {
-            errorMessage = "ERRO: O sistema não aceita o nome 'Jack'!";
+            errorMessage = "Só pode haver um JACK! >.<";                        
             playerName = "";
-        } else if (playerName.length < 3) {
-            errorMessage = "O nick deve ter pelo menos 3 caracteres.";
+        } else if (playerName.length < 2) {
+            errorMessage = "O nick deve ter pelo menos 2 caracteres.";               //decidir entr 2 ou 3 letra para nick
         } else {
             inputActive = false; 
         }
@@ -163,12 +208,14 @@ function resetBall() {
 }
 
 window.addEventListener("keydown", (e) => {
-    if (inputActive) return; 
+    if (inputActive || isPaused) return; 
 
     keys[e.key.toLowerCase()] = true;
     if (e.code === "Space") {
         if (gameOver) {
-            displayLevel = (playerScore >= winningScore) ? Math.min(6, displayLevel + 1) : 1;
+            if (playerScore >= winningScore) {
+                displayLevel = Math.min(6, displayLevel + 1);
+            }
             playerScore = 0; computerScore = 0;
             gameOver = false; gameStarted = false;
             resetBall();
@@ -182,49 +229,40 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
 
 function update() {
-    if (!gameStarted || gameOver || inputActive) return;
+    //  pausado interrompe att
+    if (!gameStarted || gameOver || inputActive || isPaused) return;
 
     if (shakeIntensity > 0) shakeIntensity *= 0.9;
     if (flashOpacity > 0) flashOpacity -= 0.02;
     if (goalTimer > 0) goalTimer--; 
 
-    if (powerUpActive) {
-        powerUpTimer--;
-        if (powerUpTimer <= 0) {
-            powerUpActive = false;
-            playerWidth = basePaddleWidth;
-        }
+    particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        p.life -= 0.02;
+        if (p.life <= 0) particles.splice(i, 1);
+    });
+
+    if (powerUpActive && --powerUpTimer <= 0) {
+        powerUpActive = false;
+        playerWidth = basePaddleWidth;
     }
 
-    if (ballSlowed) {
-        ballSlowTimer--;
-        if (ballSlowTimer <= 0) {
-            ballSlowed = false;
-            let currentSpeed = getLevelSpeed();
-            ballSpeedY = Math.sign(ballSpeedY) * currentSpeed;
-            ballSpeedX = Math.sign(ballSpeedX) * currentSpeed;
-        }
+    if (ballSlowed && --ballSlowTimer <= 0) {
+        ballSlowed = false;
+        let currentSpeed = getLevelSpeed();
+        ballSpeedY = Math.sign(ballSpeedY) * currentSpeed;
+        ballSpeedX = Math.sign(ballSpeedX) * currentSpeed;
     }
 
     if (powerUp.active) {
         powerUp.y += powerUp.speed;
         if (powerUp.y + powerUp.size > canvas.height - paddleHeight &&
             powerUp.x > playerX && powerUp.x < playerX + playerWidth) {
-            
             powerUp.active = false; 
-
             if (powerUp.type === 'wide') {
-                powerUpActive = true;
-                playerWidth = basePaddleWidth * 1.6;
-                powerUpTimer = 420; 
-                triggerFlash("#00FF00"); 
+                powerUpActive = true; playerWidth = basePaddleWidth * 1.6; powerUpTimer = 420; triggerFlash("#00FF00"); 
             } else if (powerUp.type === 'slow') {
-                ballSlowed = true;
-                ballSlowTimer = 360; 
-                let slowSpeed = getLevelSpeed();
-                ballSpeedY = Math.sign(ballSpeedY) * slowSpeed;
-                ballSpeedX = Math.sign(ballSpeedX) * slowSpeed; 
-                triggerFlash("#00FFFF"); 
+                ballSlowed = true; ballSlowTimer = 360; triggerFlash("#00FFFF"); 
             }
         }
         if (powerUp.y > canvas.height) powerUp.active = false;
@@ -243,7 +281,6 @@ function update() {
     if (ballSpeedY < 0 && ballY < canvas.height * 0.7) {
         let computerAgility = (ballSlowed ? 1.0 : 1.8) + (displayLevel * 0.45);
         let targetX = ballX - (currentCompW / 2) + computerErrorX;
-        
         if (Math.abs(computerX - targetX) > 10) {
             if (computerX < targetX) computerX += computerAgility;
             else if (computerX > targetX) computerX -= computerAgility;
@@ -254,6 +291,7 @@ function update() {
         ballSpeedX *= -1;
         triggerShake(3);
         playSFX(soundHit); 
+        createParticles(ballX, ballY, "#FFF");
     }
 
     let speed = getLevelSpeed();
@@ -267,6 +305,7 @@ function update() {
             ballY = canvas.height - paddleHeight - ballRadius;
             triggerShake(8);
             playSFX(soundHit); 
+            createParticles(ballX, canvas.height - paddleHeight, "#FFF");
             spawnPowerUp();
         }
     }
@@ -279,39 +318,35 @@ function update() {
             ballY = paddleHeight + ballRadius;
             triggerShake(8);
             playSFX(soundHit); 
+            createParticles(ballX, paddleHeight, currentColor);
         }
     }
 
     if (ballY < 0 || ballY > canvas.height) {
         if (ballY < 0) {
-            playerScore++; 
-            lastScorer = "player";
+            playerScore++; lastScorer = "player";
             goalMessage = `${playerName} FEZ GOL!`;
-            triggerFlash(currentColor);
-            playSFX(soundWin);
-
-            // CASO O JOGADOR TENHA FEITO 6 GOL NO ULTIMO LVL ~~~~~~~~~~~~~~!!!~~~~~~~~~~
-            if (playerScore >= winningScore && displayLevel === 6) {
-                gameOver = true;
-            }
-
+            triggerFlash(currentColor); playSFX(soundWin);
+            if (playerScore >= winningScore && displayLevel === 6) gameOver = true;
         } else {
-            computerScore++; 
-            lastScorer = "computer";
+            computerScore++; lastScorer = "computer";
             goalMessage = "JACK FEZ O GOL!";
-            triggerFlash("#FF0000");
-            playSFX(soundLose);
+            triggerFlash("#FF0000"); playSFX(soundLose);
         }
-
         goalTimer = 60; 
+        if (playerScore >= winningScore || computerScore >= winningScore) gameOver = true;
+        else { gameStarted = false; resetBall(); }
+    }
+}
 
-        //alguém venceu ! ?
-        if (playerScore >= winningScore || computerScore >= winningScore) {
-            gameOver = true;
-        } else {
-            gameStarted = false; 
-            resetBall(); 
-        }
+function drawGrid() {
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= canvas.width; x += 50) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y <= canvas.height; y += 50) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
     }
 }
 
@@ -319,8 +354,17 @@ function draw() {
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    drawGrid();
+
     let currentColor = `hsl(${200 - (displayLevel * 30)}, 80%, 50%)`;
     let scoreColor = `hsla(${200 - (displayLevel * 30)}, 80%, 50%, 0.15)`;
+
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 3, 3);
+    });
+    ctx.globalAlpha = 1.0;
 
     ctx.font = "bold 150px Arial";
     ctx.fillStyle = scoreColor;
@@ -344,37 +388,46 @@ function draw() {
         ctx.fillRect(powerUp.x, powerUp.y, powerUp.size, powerUp.size);
     }
 
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = ballSlowed ? "#00FFFF" : "#FFF";
     ballTrail.forEach((pos, i) => {
         ctx.globalAlpha = i / trailLength * 0.2;
         ctx.fillStyle = currentColor;
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, ballRadius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(pos.x, pos.y, ballRadius, 0, Math.PI * 2); ctx.fill();
     });
     ctx.globalAlpha = 1.0;
-
-    ctx.beginPath();
-    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-    ctx.fillStyle = ballSlowed ? "#00FFFF" : "#FFF"; 
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+    ctx.fillStyle = ballSlowed ? "#00FFFF" : "#FFF"; ctx.fill();
+    ctx.shadowBlur = 0;
 
     ctx.fillStyle = powerUpActive ? "#0F0" : "#FFF"; 
     ctx.fillRect(playerX, canvas.height - paddleHeight, playerWidth, paddleHeight);
-    
     ctx.fillStyle = currentColor; 
     ctx.fillRect(computerX, 0, getEnemyWidth(), paddleHeight);
     
     ctx.restore();
 
+    // --- PAUSA  TESTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TESTE TESTE TESTE TESTE ---              PAUSA TESTE <
+    if (isPaused) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#FFF";
+        ctx.font = "bold 50px Courier New";
+        ctx.fillText("JOGO PAUSADO", canvas.width / 2, canvas.height / 2 - 20);
+        ctx.font = "20px Arial";
+        ctx.fillText("Pressione ENTER para Continuar", canvas.width / 2, canvas.height / 2 + 40);
+        ctx.fillStyle = "#FF5555";
+        ctx.fillText("Pressione ESC para Sair", canvas.width / 2, canvas.height / 2 + 80);
+    }
+
     if (flashOpacity > 0) {
         ctx.strokeStyle = borderFlashColor;
-        ctx.lineWidth = 40;
-        ctx.globalAlpha = flashOpacity;
+        ctx.lineWidth = 40; ctx.globalAlpha = flashOpacity;
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
         ctx.globalAlpha = 1.0;
     }
 
-    if (!gameStarted && !gameOver) {
+    if (!gameStarted && !gameOver && !isPaused) {
         ctx.fillStyle = "#FFF";
         ctx.textAlign = "center";
         ctx.font = "bold 40px Arial";
@@ -383,53 +436,34 @@ function draw() {
         ctx.fillText("PRESS SPACE BAR PARA COMEÇAR", canvas.width/2, canvas.height/2 + 30);
         ctx.font = "14px Arial";
         ctx.fillStyle = "#888";
-        ctx.fillText("ESC para mudar Nick", canvas.width/2, canvas.height - 20);
+        ctx.fillText("ESC para Pausar", canvas.width/2, canvas.height - 20);
     }
 
-    //  "if (gameOver) "" ATT PARA CRÉDITO SE PASSAR OS 6 niveis
     if (gameOver) {
         ctx.fillStyle = "rgba(0,0,0,0.95)"; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
         const venceuPartida = playerScore >= winningScore;
-
         if (venceuPartida && displayLevel === 6) {
             ctx.textAlign = "center";
-            
-            ctx.fillStyle = "#FFD700"; 
-            ctx.font = "bold 60px Arial";
+            ctx.fillStyle = "#FFD700"; ctx.font = "bold 60px Arial";
             ctx.fillText("Venceu o Jack!", canvas.width / 2, canvas.height / 2 - 50);
-
-            ctx.fillStyle = "#FFF";
-            ctx.font = "25px Arial";
+            ctx.fillStyle = "#FFF"; ctx.font = "25px Arial";
             ctx.fillText(`Parabéns, ${playerName}!`, canvas.width / 2, canvas.height / 2 + 10);
             ctx.fillText("Você derrotou o Jack!", canvas.width / 2, canvas.height / 2 + 45);
-            
-            ctx.font = "bold 20px Courier New";
-            ctx.fillStyle = "rgb(240, 244, 240)"; 
-            ctx.fillText("--- CRÉDITOS ---", canvas.width / 2, canvas.height / 2 + 110);
-
-            ctx.font = "18px Courier New";
-            ctx.fillStyle = "#FFF"; 
+            ctx.font = "bold 20px Courier New"; ctx.fillStyle = "rgb(240, 244, 240)"; 
+            ctx.fillText("--- Venceu o Jack ---", canvas.width / 2, canvas.height / 2 + 110);
+            ctx.font = "18px Courier New"; ctx.fillStyle = "#FFF"; 
             ctx.fillText("Criação e Lógica: Jackson Schroeder", canvas.width / 2, canvas.height / 2 + 140);
             ctx.fillText("Design Visual: Jackson Schroeder", canvas.width / 2, canvas.height / 2 + 165);
             ctx.fillText("Trilha Sonora: Jsfxr (https://sfxr.me)", canvas.width / 2, canvas.height / 2 + 190);
-
-            ctx.fillStyle = "#1acb14"; 
-            ctx.fillText("Obrigado por jogar!", canvas.width / 2, canvas.height / 2 + 230);
-            
-            ctx.font = "14px Arial";
-            ctx.fillStyle = "#888";
+            ctx.fillStyle = "#1acb14"; ctx.fillText("Obrigado por jogar!", canvas.width / 2, canvas.height / 2 + 230);
+            ctx.font = "14px Arial"; ctx.fillStyle = "#888";
             ctx.fillText("PRESSIONE ESPAÇO PARA RECOMEÇAR A JORNADA", canvas.width / 2, canvas.height - 50);
-
         } else {
             ctx.fillStyle = venceuPartida ? "#00FF00" : "#FF0000";
-            ctx.font = "bold 70px Arial";
-            ctx.textAlign = "center";
+            ctx.font = "bold 70px Arial"; ctx.textAlign = "center";
             ctx.fillText(venceuPartida ? "VITÓRIA!" : "DERROTA!", canvas.width/2, canvas.height/2);
-            
-            ctx.fillStyle = "#FFF";
-            ctx.font = "20px Arial";
+            ctx.fillStyle = "#FFF"; ctx.font = "20px Arial";
             ctx.fillText(venceuPartida ? "Próximo nível vindo aí..." : "Não desista!", canvas.width/2, canvas.height/2 + 60);
         }
     }
@@ -446,3 +480,9 @@ function loop() {
 }
 
 loop();
+
+
+
+// ideias, deixar o player escolher a cor da raquete no menu principal 
+// portar depois de finalizado par mobile ? 
+// fazer cores diferentes para cada nivel no campo? 
