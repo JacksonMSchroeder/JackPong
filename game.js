@@ -478,4 +478,4 @@ loop();
 
 // ideias, deixar o player escolher a cor da raquete no menu principal ?
 // portar depois de finalizado par mobile ? 
-// fazer cores diferentes para cada nivel no campo? 
+// fazer cores diferentes para cada nivel no campo? '
