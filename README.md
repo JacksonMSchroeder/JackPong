@@ -1,7 +1,7 @@
 # JackPong 🏓
 Estudo, fazer um pong e trabalhar com ideias para aprimoramento  
 
-link para JOGAR ~>git https://jacksonmschroeder.github.io/JackPong/
+link para JOGAR ~~> https://jacksonmschroeder.github.io/JackPong/
 
 ✅Física da bola e escopo geral do jogo, Mudança importante "verticalidade do jogo"
 
@@ -28,13 +28,14 @@ link para JOGAR ~>git https://jacksonmschroeder.github.io/JackPong/
 ✅GIF e "profissionalização do "READ.ME" 
 
 Pode vencer o Jack??
+
 ![Pode vencer o Jack??](gifjogo.gif)
 
 
 
 
 
-
+"""
 Desafios do projeto até a versão 0.1:
 
 A dificuldade do jogo. Cada vez que colocava um multiplicador de velocidade na bola, fatalmente o jogo ficava impossível de jogar depois de um certo tempo. 
